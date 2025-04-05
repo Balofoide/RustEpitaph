@@ -161,7 +161,7 @@ fn interface(database: Arc<Database>)
     let input = buffer.trim().to_lowercase();
 
     match input.as_str(){
-        "list" => {
+        "clients" => {
             // std::process::Command::new("clear").status().unwrap();
  
             let database_clone = Arc::clone(  &database);
