@@ -1,20 +1,31 @@
 use std::collections::HashMap;
  
-use std::io::{empty, prelude::*};
+use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
  
 use std::io;
+ 
 use std::sync::{Arc, Mutex};
 use std::thread;
 use uuid::Uuid;
 
 #[derive(Debug)]
-struct Client_Info {
+struct ClientInfo {
     stream: TcpStream,
     alias: String,
 } 
 
-type Clientes = Arc<Mutex<HashMap<Uuid,Client_Info>>>;
+impl ClientInfo {
+    
+    pub fn new(stream:TcpStream, alias:&str) -> Self{
+        ClientInfo { stream, alias:alias.to_string() }
+    }
+
+    pub fn set_alias(&mut self, new_alias: &str) {
+        self.alias = new_alias.to_string();
+    }
+}
+type Clientes = Arc<Mutex<HashMap<Uuid,ClientInfo>>>;
 struct Database{
     client:Clientes
 }
@@ -25,7 +36,7 @@ impl Database {
         Database { client: Arc::new(Mutex::new(HashMap::new())), }
     }
     
-    pub fn add_client(&self, id: Uuid, client_info:Client_Info){
+    pub fn add_client(&self, id: Uuid, client_info:ClientInfo){
         let mut client = self.client.lock().unwrap();
         client.insert(id, client_info);
 
@@ -59,12 +70,12 @@ impl Database {
     }
 
 
-    pub fn alias_to_id(&self, input:String) -> Option<Uuid>{
+    pub fn alias_to_id(&self, input:&String) -> Option<Uuid>{
 
         let client = self.client.lock().unwrap();
 
        let result =  client.iter()
-        .find(|(_,client)| client.alias == input)
+        .find(|(_,client)| client.alias == input.to_string())
         .map(|(id,_)| *id);
 
         return result;
@@ -87,19 +98,11 @@ impl Database {
         }
     }
 
+ 
 }
 
 
-impl Client_Info {
-    
-    pub fn new(stream:TcpStream, alias:&str) -> Self{
-        Client_Info { stream, alias:alias.to_string() }
-    }
 
-    pub fn set_alias(&mut self, new_alias: &str) {
-        self.alias = new_alias.to_string();
-    }
-}
 fn main() {
     let mut db = Arc::new(Database::new());
 
@@ -218,7 +221,7 @@ fn server(database:Arc<Database>){
         match stream {
             Ok(stream) => {
                 let stream_copy = stream.try_clone().expect("Erro ao clonar a stream");
-                let client = Client_Info::new(stream_copy, "NULL");
+                let client = ClientInfo::new(stream_copy, "NULL");
 
 
                 let stream_copy = stream.try_clone().expect("Erro ao clonar a stream");
@@ -268,22 +271,33 @@ fn handle_clients(database: Arc<Database>){
    
 
     print!("Host para conectar: ");
-    let mut buffer:String = String::new();
     io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
+    let mut buffer = String::new();
     io::stdin().read_line(&mut buffer).expect("Erro ao ler input");
-    let option:Uuid = buffer.trim().parse().expect("Erro na conversão do buffer para Uuid");
+    let input = buffer.trim().to_string(); // Input tratado (sem espaços extras)
 
-    
     let database_clone = Arc::clone(&database);
-    
 
-        
-   match database_clone.get_stream(&option){
-    Some(ip) => handle_tcp(&ip),
-    None => println!("Cliente Invalido")
-   };
-
+    // Tenta buscar pelo alias
+    if let Some(id) = database_clone.alias_to_id(&input) {
+        // Alias existe: usa o ID associado
+        match database_clone.get_stream(&id) {
+            Some(ip) => handle_tcp(&ip),
+            None => println!("Cliente encontrado, mas sem conexão ativa."),
+        }
+    } else {
+        // Se não é alias, tenta parsear como UUID
+        match input.parse::<Uuid>() {
+            Ok(uuid) => {
+                match database_clone.get_stream(&uuid) {
+                    Some(ip) => handle_tcp(&ip),
+                    None => println!("UUID não encontrado ou sem conexão."),
+                }
+            }
+            Err(_) => println!("Input inválido: não é um alias registrado nem um UUID."),
+        }
+    }
 
 }
 
