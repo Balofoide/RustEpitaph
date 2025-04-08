@@ -9,12 +9,12 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use uuid::Uuid;
 
+type Clientes = Arc<Mutex<HashMap<Uuid,ClientInfo>>>;
 #[derive(Debug)]
 struct ClientInfo {
     stream: TcpStream,
     alias: String,
 } 
-
 impl ClientInfo {
     
     pub fn new(stream:TcpStream, alias:&str) -> Self{
@@ -25,12 +25,11 @@ impl ClientInfo {
         self.alias = new_alias.to_string();
     }
 }
-type Clientes = Arc<Mutex<HashMap<Uuid,ClientInfo>>>;
 struct Database{
     client:Clientes
 }
 
-impl Database {
+impl Database { 
 
     pub fn new() -> Self {
         Database { client: Arc::new(Mutex::new(HashMap::new())), }
@@ -42,12 +41,12 @@ impl Database {
 
     }
 
-    pub fn remove_client(&self, id:Uuid){
-        let mut client = self.client.lock().unwrap();
-        if let Some(client) = client.remove(&id){
+    // pub fn remove_client(&self, id:Uuid){
+    //     let mut client = self.client.lock().unwrap();
+    //     if let Some(client) = client.remove(&id){
 
-        }
-    }
+    //     }
+    // }
 
     pub fn list_clientes(&self){
         let client = self.client.lock().unwrap();
@@ -81,13 +80,13 @@ impl Database {
         return result;
     }
 
-    pub fn get_stream_alias(&self,alias:&Uuid) -> Option<TcpStream>{
+    // pub fn get_stream_alias(&self,alias:&Uuid) -> Option<TcpStream>{
 
-        let client = self.client.lock().unwrap();
+    //     let client = self.client.lock().unwrap();
         
-        return client.get(alias).map(|client|client.stream.try_clone().unwrap());
+    //     return client.get(alias).map(|client|client.stream.try_clone().unwrap());
 
-    }
+    // }
 
     pub fn update_alias(&self, idi: &Uuid, new_alias: &str) {
         let mut clients = self.client.lock().unwrap();  // Notar o mut aqui
@@ -140,35 +139,25 @@ fn main() {
         
     }
     
-
-
-  
+ 
 }
 
-
-
-
-fn interface(database: Arc<Database>) 
-{
+fn interface(database: Arc<Database>){
     // std::process::Command::new("clear").status().unwrap();
-    let mut buffer:String = String::new();
+   
     
     print!("\n>");
     // O codigo espera uma quebra de linha para mostrar o buffer, caso não tenha ele fica travado no stdin e só mostra depois dele.
     // Assim é preciso dar um flush no stdout manualmente, fazendo com que ele apareça no terminal.
     io::stdout().flush().expect("Falha ao fazer flush do stdout");
+ 
 
-
-    io::stdin().read_line(&mut buffer).expect("Erro ao ler input");
-
-    let input = buffer.trim().to_lowercase();
+    let input = input();
 
     match input.as_str(){
         "clients" => {
-            // std::process::Command::new("clear").status().unwrap();
- 
             let database_clone = Arc::clone(  &database);
-            list_clientes(database_clone);
+            database_clone.list_clientes();
         },
         "connect" => {
             let database_clone = Arc::clone(  &database);
@@ -177,34 +166,14 @@ fn interface(database: Arc<Database>)
         "alias" => {
             manage_alias(database);
         }
-        "help" =>   println!("»help\n»list\n»connect"),
+        "help" =>   println!("
+        »help\n
+        »list\n
+        »alias\n
+        »connect"),
+
         _ => println!("Comando incorreto")
     };
-
-}
-
-
-
-
-fn interact(send: String, stream:&TcpStream) -> String {
-
-    let send_bytes = send.as_bytes();
-
-     let mut stream = stream;
-    stream.write(send_bytes)
-    .expect("Erro ao Enviar a mensagem");
-
-    let mut get_bytes:[u8;65535] = [0; 65535];
-
-    let temp_buffer = stream.read(&mut get_bytes)
-    .expect("Erro ao ler a resposta");
-
-
-
-    let resposta = String::from_utf8_lossy(&get_bytes[..temp_buffer]);
-
-    return resposta.to_string();
-    
 
 }
 
@@ -241,30 +210,6 @@ fn server(database:Arc<Database>){
 
 }
 
-
-fn list_clientes(database: Arc<Database>){
-
-
-    database.list_clientes();
-
-
-    // let lock_clientes = clientes.lock().unwrap();
-    // let ids:Vec<Uuid> = lock_clientes.keys().cloned().collect();
-
-
-    // for conectados in ids{
-    //     match lock_clientes.get(&conectados){
-    //         Some(ip) => println!("{}-> {}",conectados,ip.peer_addr().unwrap().ip()),
-    //         None => println!("List Error!")
-    //     }
-
-    // }
-
-
-
-}
-
-
 fn handle_clients(database: Arc<Database>){
 
      
@@ -273,9 +218,7 @@ fn handle_clients(database: Arc<Database>){
     print!("Host para conectar: ");
     io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
-    let mut buffer = String::new();
-    io::stdin().read_line(&mut buffer).expect("Erro ao ler input");
-    let input = buffer.trim().to_string(); // Input tratado (sem espaços extras)
+    let input = input();
 
     let database_clone = Arc::clone(&database);
 
@@ -301,26 +244,25 @@ fn handle_clients(database: Arc<Database>){
 
 }
 
- 
-
 fn handle_tcp( stream: & TcpStream){
     std::process::Command::new("clear").status().unwrap();
     println!("Cliente: {}", stream.peer_addr().unwrap().ip());
     
 
     loop {
-        let mut send:String = String::new();
+         
         
         print!("{} >",stream.peer_addr().unwrap().ip());
         io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
-        io::stdin().read_line(&mut send).expect("Não foi possivel ler a mensagem");
+
         
-        let input = send.trim().to_lowercase();
+        let input = input();
 
         match input.as_str(){
             "/voltar" => break,
-            _=> println!("{}",interact(send,stream))
+            _ => println!("{}",interact(input, stream))
+            
         }
          
         
@@ -346,4 +288,36 @@ fn manage_alias(database:Arc<Database> ){
 
     database.update_alias(&id,&input);
 
+}
+
+fn interact(send: String, stream:&TcpStream) -> String {
+
+    
+   
+
+    let send_bytes = send.as_bytes();
+
+     let mut stream = stream;
+    stream.write(send_bytes)
+    .expect("Erro ao Enviar a mensagem");
+
+    let mut get_bytes:[u8;65535] = [0; 65535];
+
+    let temp_buffer = stream.read(&mut get_bytes)
+    .expect("Erro ao ler a resposta");
+
+
+
+    let resposta = String::from_utf8_lossy(&get_bytes[..temp_buffer]);
+
+    return resposta.to_string();
+    
+
+}
+
+fn input() -> String{
+    let mut buffer = String::new();
+    io::stdin().read_line(&mut buffer).expect("Erro ao ler input");
+    let input = buffer.trim().to_string(); // Input tratado (sem espaços extras)
+    return input;
 }
