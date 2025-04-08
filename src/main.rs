@@ -9,7 +9,6 @@ use crate::utils::menu::menu::{spawn_menu,banner};
 
 fn main() {
     let db = Arc::new(Database::new());
-    
     banner();
 
     let db_clone = Arc::clone(&db);
@@ -17,7 +16,6 @@ fn main() {
 
     let db_clone = Arc::clone(&db);
     spawn_menu(db_clone);
-    
 }
 
 

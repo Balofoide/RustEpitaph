@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
- 
- [dependencies.uuid]
+regex = "1.11.1"
+
+[dependencies.uuid]
 version = "1.16.0"
 # Lets you generate random UUIDs
 features = [

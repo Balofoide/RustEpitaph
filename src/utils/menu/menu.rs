@@ -31,6 +31,7 @@ pub fn banner(){
  println!("Your last words, will eventually rust.");
 }
 
+
 pub fn interprete(database: Arc<Database>){
 
     print!("\n>");
@@ -62,9 +63,11 @@ pub fn interprete(database: Arc<Database>){
             database.list_clientes();
         }
         "help" => {
+            println!("------Commands------");
             println!("connect <ID | Alias>");
             println!("alias <ID> <Alias>");
             println!("list");
+            println!("help");
         }
         _ => println!("Comando inexistente")
     }
