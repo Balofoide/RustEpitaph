@@ -2,9 +2,9 @@ use std::io::prelude::*;
 use std::io;
 use std::sync::Arc;
  
-use crate::utils::database_struct::Database;
+use crate::utils::servers::database_struct::Database;
 use crate::utils::servers::server_tcp::{input,handle_clients,manage_alias};
-
+use crate::utils::payload::tcp_generator::gen_tcp;
 
 pub fn spawn_menu(database:Arc<Database>){
     loop{
@@ -29,6 +29,10 @@ pub fn banner(){
  :   : :   : :  :   :: : :      :        : :: ::    :        :       :      :   : :   :         :   : :  
                                                                                                          \n");
  println!("Your last words, will eventually rust.");
+
+
+
+
 }
 
 
@@ -67,7 +71,17 @@ pub fn interprete(database: Arc<Database>){
             println!("connect <ID | Alias>");
             println!("alias <ID> <Alias>");
             println!("list");
+            println!("clear");
             println!("help");
+            println!("banner");
+            println!("gen");
+            
+        }
+        "clear" => {
+            std::process::Command::new("clear").status().unwrap();
+        }
+        "gen" => {
+            gen_tcp(comandos[1], comandos[2]);
         }
         _ => println!("Comando inexistente")
     }

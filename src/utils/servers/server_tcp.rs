@@ -6,8 +6,8 @@ use uuid::Uuid;
 use std::thread;
 
 
-use crate::utils::database_struct::Database;
-use crate::utils::database_struct::ClientInfo;
+use crate::utils::servers::database_struct::Database;
+use crate::utils::servers::database_struct::ClientInfo;
 
 pub fn spawn_server(database:Arc<Database>){
     
@@ -80,14 +80,13 @@ pub fn handle_clients(database: Arc<Database>, input:&str) {
 }
 
 pub fn handle_tcp( stream: & TcpStream){
-    std::process::Command::new("clear").status().unwrap();
+    // std::process::Command::new("clear").status().unwrap();
  
     loop {
         print!("{}>",stream.peer_addr().unwrap().ip());
         io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
 
-        
         let input2 = input();
  
         match input2.as_str(){
@@ -96,8 +95,12 @@ pub fn handle_tcp( stream: & TcpStream){
                 println!("bg -> Backgrounds the session");
                 println!("cmd -> Connect to remote shell terminal");
                 println!("help -> Help message");
+                println!("clear -> Clear the terminal history");
             }
             "bg" => break,
+            "clear" => {
+                std::process::Command::new("clear").status().unwrap();
+            },
             "cmd" => {
                 loop {
                     let dir = interact("cd".to_string(), stream).trim().to_string();
@@ -108,7 +111,7 @@ pub fn handle_tcp( stream: & TcpStream){
                     
                     match input2.as_str() {
                         "/help" => {
-                            println!("---Cmd-Commands---");
+                            println!("----Cmd-Commands----");
                             println!("/exit -> Exit from cmd terminal.")
                         }
                         "/exit" => break,
@@ -135,10 +138,7 @@ pub fn manage_alias(database:Arc<Database>,id:&str,alias:&str){
 }
 
 fn interact(send: String, stream:&TcpStream) -> String {
-
-    
-   
-
+ 
     let send_bytes = send.as_bytes();
 
      let mut stream = stream;

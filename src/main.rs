@@ -2,7 +2,7 @@ use std::sync::Arc;
  
 mod utils;
 
-use crate::utils::database_struct::Database;
+use crate::utils::servers::database_struct::Database;
 use crate::utils::servers::server_tcp::spawn_server;
 use crate::utils::menu::menu::{spawn_menu,banner};
 
