@@ -3,7 +3,7 @@ use std::io;
 use std::sync::Arc;
  
 use crate::utils::servers::database_struct::Database;
-use crate::utils::servers::server_tcp::{input,handle_clients,manage_alias};
+use crate::utils::servers::server_tcp::{user_input,handle_clients,manage_alias};
 use crate::utils::payload::tcp_generator::gen_tcp;
 
 pub fn spawn_menu(database:Arc<Database>){
@@ -41,7 +41,7 @@ pub fn interprete(database: Arc<Database>){
     print!("\n>");
     io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
-    let input = &input();
+    let input = &user_input();
     let comandos:Vec<&str> = input.split_whitespace().collect();
 
     if comandos.is_empty(){

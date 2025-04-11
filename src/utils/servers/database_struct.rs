@@ -39,12 +39,12 @@ impl Database {
 
     }
 
-    // pub fn remove_client(&self, id:Uuid){
-    //     let mut client = self.client.lock().unwrap();
-    //     if let Some(client) = client.remove(&id){
+    pub fn remove_client(&self, id:Uuid){
+        let mut client = self.client.lock().unwrap();
+        if let Some(_) = client.remove(&id){
 
-    //     }
-    // }
+        }
+    }
 
     pub fn list_clientes(&self){
         let client = self.client.lock().unwrap();
