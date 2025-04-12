@@ -27,7 +27,7 @@
   <a href="#license">License</a>
 </p>
 
-![screenshot]("img/image.png")
+![screenshot](/img/image.png)
 
 ## Key Features
 
