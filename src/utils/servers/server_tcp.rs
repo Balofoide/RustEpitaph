@@ -114,7 +114,18 @@ pub fn handle_tcp(stream: &TcpStream, database: Arc<Database>, id: Uuid) {
 
                         let cmd_commands = user_input();
 
+                        if cmd_commands == "/exit"{
+                            break;
+                        }else if cmd_commands == "/help"{
+                        
+                            println!("----Pseudo-Terminal----");
+                            println!("/exit -> Exit from host Terminal");
+                        }
+
+                        else {
+
                         match interact(cmd_commands, stream) {
+
                             Ok(resposta) => {
                                 println!("{}", resposta.replace(dir, ""));
                             }
@@ -122,6 +133,7 @@ pub fn handle_tcp(stream: &TcpStream, database: Arc<Database>, id: Uuid) {
                                 println!("Client Timeout");
                             }
                         }
+                    }
                     }
                     Err(_) => {
                         println!("Client Timeout");

