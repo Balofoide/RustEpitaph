@@ -22,7 +22,7 @@ pub fn server(database: Arc<Database>) {
         match stream {
             Ok(stream) => {
                 let stream_copy = stream.try_clone().expect("Erro ao clonar a stream");
-                let client = ClientInfo::new(stream_copy, "NULL");
+                let client = ClientInfo::new("TCP".to_string(),stream_copy, "NULL");
 
                 let stream_copy = stream.try_clone().expect("Erro ao clonar a stream");
                 println!(

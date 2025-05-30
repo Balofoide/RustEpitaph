@@ -7,13 +7,14 @@ use uuid::Uuid;
 type Clientes = Arc<Mutex<HashMap<Uuid,ClientInfo>>>;
 #[derive(Debug)]
 pub struct ClientInfo {
+    tipo: String,
     stream: TcpStream,
     alias: String,
 } 
 impl ClientInfo {
     
-    pub fn new(stream:TcpStream, alias:&str) -> Self{
-        ClientInfo { stream, alias:alias.to_string() }
+    pub fn new(tipo:String,stream:TcpStream, alias:&str) -> Self{
+        ClientInfo {tipo, stream, alias:alias.to_string() }
     }
 
     pub fn set_alias(&mut self, new_alias: &str) {
@@ -46,13 +47,18 @@ impl Database {
         }
     }
 
+      pub fn is_empty(&self) -> bool {
+        // Implement logic to check if the database is empty
+        // For example, if the database has a `clients` field:
+        self.client.lock().unwrap().is_empty()
+    }
     pub fn list_clientes(&self){
         let client = self.client.lock().unwrap();
         for(id,client) in client.iter(){
             if client.alias != "NULL"{
-                println!("{} -> {} ", client.alias, client.stream.peer_addr().unwrap().ip());
+                println!("{}:{} -> {} ", client.tipo,client.alias, client.stream.peer_addr().unwrap().ip());
             }else{
-                println!("{} -> {} ", id, client.stream.peer_addr().unwrap().ip());
+                println!("{}:{} -> {} ", client.tipo, id, client.stream.peer_addr().unwrap().ip());
             }
         }
     }

@@ -74,7 +74,11 @@ pub fn interprete(database: Arc<Database>) -> bool{
             }
         }
         "list" => {
-            database.list_clientes();
+            if database.is_empty() {
+                println!("-Nenhum Host Online-");
+            } else {
+                database.list_clientes();
+            }
             return true;
         }
         "help" => {
