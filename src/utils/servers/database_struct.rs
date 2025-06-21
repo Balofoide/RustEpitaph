@@ -56,9 +56,9 @@ impl Database {
         let client = self.client.lock().unwrap();
         for(id,client) in client.iter(){
             if client.alias != "NULL"{
-                println!("{}:{} -> {} ", client.tipo,client.alias, client.stream.peer_addr().unwrap().ip());
+                println!("{}: {} -> {} ", client.tipo, client.alias, client.stream.peer_addr().unwrap().ip());
             }else{
-                println!("{}:{} -> {} ", client.tipo, id, client.stream.peer_addr().unwrap().ip());
+                println!("{}: {} -> {} ", client.tipo, id, client.stream.peer_addr().unwrap().ip());
             }
         }
     }
@@ -68,6 +68,15 @@ impl Database {
         let client = self.client.lock().unwrap();
 
         return client.get(id).map(|client|client.stream.try_clone().unwrap());
+
+    }
+
+    pub fn get_type(&self,id:&Uuid) -> Option<String>{
+
+        let client = self.client.lock().unwrap();
+
+        return client.get(id).map(|client| client.tipo.clone());
+
 
     }
 

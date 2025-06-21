@@ -26,9 +26,10 @@ pub fn server(database: Arc<Database>) {
 
                 let stream_copy = stream.try_clone().expect("Erro ao clonar a stream");
                 println!(
-                    "Novo cliente conectado {}",
+                    "\n[+] Novo cliente conectado {}",
                     stream_copy.peer_addr().unwrap().ip()
                 );
+                io::stdout().flush().expect("Falha ao fazer flush do stdout");
 
                 // let stream_copy = stream.try_clone().expect("Erro ao clonar a stream");
                 let database_clone = Arc::clone(&database);
@@ -41,7 +42,7 @@ pub fn server(database: Arc<Database>) {
     }
 }
 
-pub fn handle_clients(database: Arc<Database>, input: &str) {
+pub fn handle_clients_tcp(database: Arc<Database>, input: &str) {
     let database_clone = Arc::clone(&database);
 
     // Tenta buscar pelo alias
