@@ -32,7 +32,6 @@
 ## Key Features
 
 * Multi TCP Client Handle
-  - Can Handle Multi TCP clients 
 * Obfuscated Payload Generation
 * Multi Platform Support
 
